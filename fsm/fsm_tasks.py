@@ -2,7 +2,8 @@ from aiogram import F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from keyboards.task_keyboards import get_main_keyboard, get_cancel_keyboard
+from keyboards.task_keyboards import CANCEL_BUTTON, get_cancel_keyboard, get_main_keyboard
+from repository.day_repository import get_active_day
 from repository.task_repository import add_task
 
 router = Router()
@@ -23,6 +24,7 @@ async def start_add_task(message: types.Message, state: FSMContext):
     )
 
 
+@router.message(F.text == CANCEL_BUTTON)
 @router.message(F.text == "Отмена")
 async def cancel_action(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
@@ -30,14 +32,14 @@ async def cancel_action(message: types.Message, state: FSMContext):
     if current_state is None:
         await message.answer(
             "Сейчас нечего отменять.",
-            reply_markup=get_main_keyboard()
+            reply_markup=_main_menu_keyboard()
         )
         return
 
     await state.clear()
     await message.answer(
-        "Действие отменено.",
-        reply_markup=get_main_keyboard()
+        "❌ Действие отменено.",
+        reply_markup=_main_menu_keyboard()
     )
 
 
@@ -79,7 +81,7 @@ async def process_task_period(message: types.Message, state: FSMContext):
         f"Название: {task.name}\n"
         f"Описание: {task.description}\n"
         f"Период: {task.period}",
-        reply_markup=get_main_keyboard()
+        reply_markup=_main_menu_keyboard()
     )
 
     await state.clear()
@@ -93,3 +95,7 @@ async def start_get_tasks(message: types.Message, state: FSMContext):
         "Введите название задачи:",
         reply_markup=get_cancel_keyboard()
     )
+
+
+def _main_menu_keyboard():
+    return get_main_keyboard(is_day_started=get_active_day() is not None)

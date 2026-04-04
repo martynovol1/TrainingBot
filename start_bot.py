@@ -5,19 +5,22 @@ from aiogram.filters import Command
 
 from tokens.bot_token import BOT_API
 from database.db import init_db
+from fsm.fsm_day import router as day_router
 from fsm.fsm_tasks import router as tasks_router
 from keyboards.task_keyboards import get_main_keyboard
+from repository.day_repository import get_active_day
 
 dp = Dispatcher()
 dp.include_router(tasks_router)
+dp.include_router(day_router)
 
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     await message.answer(
         "Привет 👋\n"
-        "Я бот для ежедневных задач.",
-        reply_markup=get_main_keyboard()
+        "Я помогу вести день, еду, движение и смотреть статистику.",
+        reply_markup=get_main_keyboard(is_day_started=get_active_day() is not None)
     )
 
 
