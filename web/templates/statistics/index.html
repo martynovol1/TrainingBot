@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card filter-card">
+    <div class="section-head">
+        <div>
+            <h3>Статистика по дате</h3>
+            <p class="section-copy">Выбери день и получи понятную сводку по задачам, еде и движению.</p>
+        </div>
+    </div>
+    <form method="get" action="/statistics" class="inline-form compact-inline-form">
+        <input type="date" name="target_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+        <button type="submit">Показать</button>
+    </form>
+</section>
+
+{% if statistics %}
+<section class="card summary-panel">
+    <div class="section-head">
+        <div>
+            <h3>Итог дня</h3>
+            <p class="section-copy">Ключевые показатели должны читаться сразу, без поиска по карточкам.</p>
+        </div>
+        <span class="badge {% if statistics.day.is_finished %}badge-success{% else %}badge-muted{% endif %}">
+            {% if statistics.day.is_finished %}день завершён{% else %}день активен{% endif %}
+        </span>
+    </div>
+    <div class="metric-grid metric-grid-five">
+        <article class="metric-card compact">
+            <span class="metric-label">Съедено</span>
+            <strong class="metric-value">{{ statistics.totals.consumed }}</strong>
+            <span class="metric-note">ккал</span>
+        </article>
+        <article class="metric-card compact">
+            <span class="metric-label">Движение</span>
+            <strong class="metric-value">{{ statistics.totals.exercise_burned }}</strong>
+            <span class="metric-note">ккал</span>
+        </article>
+        <article class="metric-card compact">
+            <span class="metric-label">Базовый обмен</span>
+            <strong class="metric-value">{{ statistics.totals.base_metabolism }}</strong>
+            <span class="metric-note">ккал</span>
+        </article>
+        <article class="metric-card compact">
+            <span class="metric-label">Общий расход</span>
+            <strong class="metric-value">{{ statistics.totals.burned }}</strong>
+            <span class="metric-note">ккал</span>
+        </article>
+        <article class="metric-card compact">
+            <span class="metric-label">Баланс</span>
+            <strong class="metric-value">{{ statistics.totals.balance }}</strong>
+            <span class="metric-note">ккал</span>
+        </article>
+    </div>
+</section>
+
+<section class="page-grid stats-grid">
+    <article class="card data-panel">
+        <div class="section-head">
+            <div>
+                <h3>Выполненные задачи</h3>
+                <p class="section-copy">Что было закрыто в течение дня.</p>
+            </div>
+            <span class="muted">{{ statistics.completed_tasks|length }}</span>
+        </div>
+        {% if statistics.completed_tasks %}
+        <ul class="list dense-list">
+            {% for task in statistics.completed_tasks %}
+            <li>
+                <strong>{{ task.name }}</strong>
+                <span>{{ task.completed_at.strftime('%H:%M') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-note">
+            <strong>Задачи не отмечались</strong>
+            <p class="muted">За этот день пока нет записей о выполнении задач.</p>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="card data-panel">
+        <div class="section-head">
+            <div>
+                <h3>Еда</h3>
+                <p class="section-copy">Все продукты и объёмы за выбранный день.</p>
+            </div>
+            <span class="muted">{{ statistics.foods|length }} записей</span>
+        </div>
+        {% if statistics.foods %}
+        <ul class="list dense-list">
+            {% for food in statistics.foods %}
+            <li>
+                <div>
+                    <strong>{{ food.name }}</strong>
+                    <p class="muted">{{ food.count }}</p>
+                </div>
+                <span>{{ food.total_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-note">
+            <strong>Записей нет</strong>
+            <p class="muted">Еда за этот день не фиксировалась.</p>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="card data-panel">
+        <div class="section-head">
+            <div>
+                <h3>Движение</h3>
+                <p class="section-copy">Тренировки и активности выбранного дня.</p>
+            </div>
+            <span class="muted">{{ statistics.exercises|length }} записей</span>
+        </div>
+        {% if statistics.exercises %}
+        <ul class="list dense-list">
+            {% for exercise in statistics.exercises %}
+            <li>
+                <strong>{{ exercise.name }}</strong>
+                <span>{{ exercise.burned_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-note">
+            <strong>Записей нет</strong>
+            <p class="muted">Движение за этот день не фиксировалось.</p>
+        </div>
+        {% endif %}
+    </article>
+</section>
+{% else %}
+<section class="card empty-state">
+    <h3>За {{ selected_date.strftime('%d.%m.%Y') }} пока нет данных</h3>
+    <p class="muted">Начни день, добавь еду и движение, отметь задачи и вернись сюда за итогом.</p>
+</section>
+{% endif %}
+{% endblock %}

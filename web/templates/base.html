@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | Training Bot</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-mark">TB</span>
+                <div class="brand-copy">
+                    <p class="eyebrow">Training Bot</p>
+                    <h1>Контроль задач и привычек</h1>
+                    <p class="brand-note">Ежедневная работа с задачами, калориями и статистикой в одном месте.</p>
+                </div>
+            </div>
+
+            <nav class="nav" aria-label="Основная навигация">
+                <a href="/" class="{% if active_page == 'dashboard' %}active{% endif %}">
+                    <span class="nav-label">Панель</span>
+                    <span class="nav-hint">Обзор дня</span>
+                </a>
+                <a href="/tasks" class="{% if active_page == 'tasks' %}active{% endif %}">
+                    <span class="nav-label">Задачи</span>
+                    <span class="nav-hint">Отметка и список</span>
+                </a>
+                <a href="/calories" class="{% if active_page == 'calories' %}active{% endif %}">
+                    <span class="nav-label">Калории</span>
+                    <span class="nav-hint">Еда и движение</span>
+                </a>
+                <a href="/statistics" class="{% if active_page == 'statistics' %}active{% endif %}">
+                    <span class="nav-label">Статистика</span>
+                    <span class="nav-hint">Итоги дня</span>
+                </a>
+            </nav>
+
+            {% if user %}
+            <div class="profile-card">
+                <p class="muted small-label">Авторизован как</p>
+                <strong>{{ user_name }}</strong>
+                <a class="ghost-link" href="/logout">Выйти</a>
+            </div>
+            {% endif %}
+
+            <div class="sidebar-note">
+                <p class="muted">Вход на сайт привязан к Telegram-боту и выполняется через одноразовый код.</p>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="page-header">
+                <div class="page-title">
+                    <p class="eyebrow">Рабочий режим</p>
+                    <h2>{{ title }}</h2>
+                </div>
+                <div class="page-header-meta">
+                    <span class="page-date">{{ today.strftime('%d.%m.%Y') }}</span>
+                </div>
+            </header>
+
+            {% if flashes %}
+            <section class="flash-stack">
+                {% for flash in flashes %}
+                <div class="flash flash-{{ flash.category }}">{{ flash.message }}</div>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>
