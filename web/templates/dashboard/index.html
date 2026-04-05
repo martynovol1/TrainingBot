@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card summary-strip">
+    <div class="summary-copy">
+        <p class="eyebrow">Сегодня</p>
+        {% if overview.pending_tasks %}
+        <h3>{{ overview.pending_tasks|length }} задач требуют внимания</h3>
+        <p class="muted">Сначала закрой ежедневные задачи, затем дополни день едой и движением.</p>
+        {% elif overview.active_day %}
+        <h3>Основные задачи на сегодня уже закрыты</h3>
+        <p class="muted">Осталось поддерживать ритм: вносить калории и при необходимости смотреть итог дня.</p>
+        {% else %}
+        <h3>День ещё не начат</h3>
+        <p class="muted">Начни день в разделе калорий, чтобы отмечать задачи и собирать статистику.</p>
+        {% endif %}
+    </div>
+    <div class="summary-actions">
+        <a href="/tasks" class="button-link primary">Открыть задачи</a>
+        <a href="/calories" class="button-link">Учёт калорий</a>
+        <a href="/statistics" class="button-link quiet">Статистика</a>
+    </div>
+</section>
+
+<section class="metric-grid metric-grid-four">
+    <article class="metric-card">
+        <span class="metric-label">Активные задачи</span>
+        <strong class="metric-value">{{ tasks_count }}</strong>
+        <span class="metric-note">в списке</span>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Осталось сегодня</span>
+        <strong class="metric-value">{{ overview.pending_tasks|length }}</strong>
+        <span class="metric-note">к выполнению</span>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Закрыто сегодня</span>
+        <strong class="metric-value">{{ overview.completed_tasks|length }}</strong>
+        <span class="metric-note">отмечено</span>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Статус дня</span>
+        <strong class="metric-value">
+            {% if overview.active_day %}
+            активен
+            {% elif today_stats %}
+            завершён
+            {% else %}
+            не начат
+            {% endif %}
+        </strong>
+        <span class="metric-note">текущее состояние</span>
+    </article>
+</section>
+
+<section class="page-grid dashboard-grid">
+    <article class="card action-panel">
+        <div class="section-head">
+            <div>
+                <h3>Сегодня в фокусе</h3>
+                <p class="section-copy">Быстрый просмотр задач, которые стоит закрыть в первую очередь.</p>
+            </div>
+            <a href="/tasks">Все задачи</a>
+        </div>
+        {% if overview.pending_tasks %}
+        <ul class="list dense-list">
+            {% for task in overview.pending_tasks[:6] %}
+            <li>
+                <div>
+                    <strong>{{ task.name }}</strong>
+                    <p class="muted">{{ task.description or "Без описания" }}</p>
+                </div>
+                <span class="meta-badge">{{ task.period }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-note">
+            <strong>Сегодня пусто</strong>
+            <p class="muted">Все активные задачи уже закрыты или день ещё не начат.</p>
+        </div>
+        {% endif %}
+    </article>
+
+    <div class="stack">
+        <article class="card compact-panel">
+            <div class="section-head tight">
+                <div>
+                    <h3>Следующий шаг</h3>
+                    <p class="section-copy">Куда лучше перейти прямо сейчас.</p>
+                </div>
+            </div>
+            <div class="shortcut-list">
+                <a href="/tasks" class="shortcut-item">
+                    <strong>Отметить задачи</strong>
+                    <span>{{ overview.pending_tasks|length }} осталось на сегодня</span>
+                </a>
+                <a href="/calories" class="shortcut-item">
+                    <strong>Записать еду и движение</strong>
+                    <span>Обновить текущий день без лишних шагов</span>
+                </a>
+                <a href="/statistics" class="shortcut-item">
+                    <strong>Посмотреть итог дня</strong>
+                    <span>Статистика и сводка по действиям</span>
+                </a>
+            </div>
+        </article>
+
+        <article class="card compact-panel">
+            <div class="section-head tight">
+                <div>
+                    <h3>Калории сегодня</h3>
+                    <p class="section-copy">Текущая сводка без перехода в отдельный экран.</p>
+                </div>
+                <a href="/calories">Открыть</a>
+            </div>
+            {% if today_stats %}
+            <div class="summary-list">
+                <div><span>Съедено</span><strong>{{ today_stats.totals.consumed }} ккал</strong></div>
+                <div><span>Движение</span><strong>{{ today_stats.totals.exercise_burned }} ккал</strong></div>
+                <div><span>Общий расход</span><strong>{{ today_stats.totals.burned }} ккал</strong></div>
+                <div><span>Баланс</span><strong>{{ today_stats.totals.balance }} ккал</strong></div>
+            </div>
+            {% else %}
+            <div class="empty-note">
+                <strong>Записей пока нет</strong>
+                <p class="muted">Когда появятся еда или движение, здесь сразу появится сводка.</p>
+            </div>
+            {% endif %}
+        </article>
+    </div>
+</section>
+{% endblock %}

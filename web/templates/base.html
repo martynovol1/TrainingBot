@@ -11,39 +11,54 @@
         <aside class="sidebar">
             <div class="brand">
                 <span class="brand-mark">TB</span>
-                <div>
+                <div class="brand-copy">
                     <p class="eyebrow">Training Bot</p>
                     <h1>Контроль задач и привычек</h1>
+                    <p class="brand-note">Ежедневная работа с задачами, калориями и статистикой в одном месте.</p>
                 </div>
             </div>
 
+            <nav class="nav" aria-label="Основная навигация">
+                <a href="/" class="{% if active_page == 'dashboard' %}active{% endif %}">
+                    <span class="nav-label">Панель</span>
+                    <span class="nav-hint">Обзор дня</span>
+                </a>
+                <a href="/tasks" class="{% if active_page == 'tasks' %}active{% endif %}">
+                    <span class="nav-label">Задачи</span>
+                    <span class="nav-hint">Отметка и список</span>
+                </a>
+                <a href="/calories" class="{% if active_page == 'calories' %}active{% endif %}">
+                    <span class="nav-label">Калории</span>
+                    <span class="nav-hint">Еда и движение</span>
+                </a>
+                <a href="/statistics" class="{% if active_page == 'statistics' %}active{% endif %}">
+                    <span class="nav-label">Статистика</span>
+                    <span class="nav-hint">Итоги дня</span>
+                </a>
+            </nav>
+
             {% if user %}
             <div class="profile-card">
-                <p class="muted">Авторизован как</p>
+                <p class="muted small-label">Авторизован как</p>
                 <strong>{{ user_name }}</strong>
                 <a class="ghost-link" href="/logout">Выйти</a>
             </div>
             {% endif %}
 
-            <nav class="nav">
-                <a href="/" class="{% if active_page == 'dashboard' %}active{% endif %}">Панель</a>
-                <a href="/tasks" class="{% if active_page == 'tasks' %}active{% endif %}">Задачи</a>
-                <a href="/calories" class="{% if active_page == 'calories' %}active{% endif %}">Калории</a>
-                <a href="/statistics" class="{% if active_page == 'statistics' %}active{% endif %}">Статистика</a>
-            </nav>
-
             <div class="sidebar-note">
-                <p class="muted">Вход на сайт выполняется одноразовым кодом из Telegram-бота.</p>
+                <p class="muted">Вход на сайт привязан к Telegram-боту и выполняется через одноразовый код.</p>
             </div>
         </aside>
 
         <main class="content">
             <header class="page-header">
-                <div>
-                    <p class="eyebrow">Today</p>
+                <div class="page-title">
+                    <p class="eyebrow">Рабочий режим</p>
                     <h2>{{ title }}</h2>
                 </div>
-                <p class="muted">{{ today.strftime('%d.%m.%Y') }}</p>
+                <div class="page-header-meta">
+                    <span class="page-date">{{ today.strftime('%d.%m.%Y') }}</span>
+                </div>
             </header>
 
             {% if flashes %}

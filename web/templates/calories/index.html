@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-grid calories-top-grid">
+    <article class="card state-card">
+        <div class="section-head">
+            <div>
+                <h3>Состояние дня</h3>
+                <p class="section-copy">Основной переключатель дня и быстрый вход в рабочий режим.</p>
+            </div>
+            <span class="badge {% if active_day %}badge-success{% else %}badge-muted{% endif %}">
+                {% if active_day %}день активен{% else %}день не начат{% endif %}
+            </span>
+        </div>
+        <div class="action-row compact-actions">
+            <form method="post" action="/calories/day/start">
+                <button type="submit" class="{% if not active_day %}primary{% else %}secondary{% endif %}">Начать день</button>
+            </form>
+            <form method="post" action="/calories/day/finish">
+                <button type="submit" class="{% if active_day %}primary{% else %}secondary{% endif %}">Завершить день</button>
+            </form>
+        </div>
+    </article>
+
+    <article class="card totals-card">
+        <div class="section-head">
+            <div>
+                <h3>Итоги за сегодня</h3>
+                <p class="section-copy">Ключевые показатели, которые должны читаться за пару секунд.</p>
+            </div>
+            <span class="muted">{{ today.strftime('%d.%m.%Y') }}</span>
+        </div>
+        {% if today_stats %}
+        <div class="summary-list">
+            <div><span>Съедено</span><strong>{{ today_stats.totals.consumed }} ккал</strong></div>
+            <div><span>Движение</span><strong>{{ today_stats.totals.exercise_burned }} ккал</strong></div>
+            <div><span>Базовый обмен</span><strong>{{ today_stats.totals.base_metabolism }} ккал</strong></div>
+            <div><span>Общий расход</span><strong>{{ today_stats.totals.burned }} ккал</strong></div>
+            <div><span>Баланс</span><strong>{{ today_stats.totals.balance }} ккал</strong></div>
+        </div>
+        {% else %}
+        <div class="empty-note">
+            <strong>Пока нет записей</strong>
+            <p class="muted">Начни день и добавь еду или движение, чтобы здесь появилась сводка.</p>
+        </div>
+        {% endif %}
+    </article>
+</section>
+
+<section class="page-grid two">
+    <article class="card form-panel">
+        <div class="section-head">
+            <div>
+                <h3>Быстро добавить еду</h3>
+                <p class="section-copy">Минимум полей для ежедневного внесения записи.</p>
+            </div>
+        </div>
+        <form method="post" action="/calories/food" class="stack-form compact-form">
+            <label>
+                <span>Название</span>
+                <input type="text" name="name" required>
+            </label>
+            <label>
+                <span>Количество</span>
+                <input type="text" name="count" placeholder="250 г" required>
+            </label>
+            <label>
+                <span>Калории</span>
+                <input type="number" name="total_calories" min="1" required>
+            </label>
+            <button type="submit">Добавить еду</button>
+        </form>
+    </article>
+
+    <article class="card form-panel">
+        <div class="section-head">
+            <div>
+                <h3>Быстро добавить движение</h3>
+                <p class="section-copy">Запись тренировки или любой активности без лишних шагов.</p>
+            </div>
+        </div>
+        <form method="post" action="/calories/exercise" class="stack-form compact-form">
+            <label>
+                <span>Название</span>
+                <input type="text" name="name" required>
+            </label>
+            <label>
+                <span>Сожжённые калории</span>
+                <input type="number" name="burned_calories" min="1" required>
+            </label>
+            <button type="submit">Добавить движение</button>
+        </form>
+    </article>
+</section>
+
+{% if today_stats %}
+<section class="page-grid two">
+    <article class="card data-panel">
+        <div class="section-head">
+            <div>
+                <h3>Еда за сегодня</h3>
+                <p class="section-copy">Все внесённые продукты в компактном списке.</p>
+            </div>
+            <span class="muted">{{ today_stats.foods|length }} записей</span>
+        </div>
+        {% if today_stats.foods %}
+        <ul class="list dense-list">
+            {% for food in today_stats.foods %}
+            <li>
+                <div>
+                    <strong>{{ food.name }}</strong>
+                    <p class="muted">{{ food.count }}</p>
+                </div>
+                <span>{{ food.total_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-note">
+            <strong>Записей пока нет</strong>
+            <p class="muted">Добавь первую запись о еде, и она появится здесь.</p>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="card data-panel">
+        <div class="section-head">
+            <div>
+                <h3>Движение за сегодня</h3>
+                <p class="section-copy">Все активности и тренировки текущего дня.</p>
+            </div>
+            <span class="muted">{{ today_stats.exercises|length }} записей</span>
+        </div>
+        {% if today_stats.exercises %}
+        <ul class="list dense-list">
+            {% for exercise in today_stats.exercises %}
+            <li>
+                <strong>{{ exercise.name }}</strong>
+                <span>{{ exercise.burned_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-note">
+            <strong>Активностей пока нет</strong>
+            <p class="muted">Когда добавишь движение, оно сразу появится в этом списке.</p>
+        </div>
+        {% endif %}
+    </article>
+</section>
+{% endif %}
+{% endblock %}

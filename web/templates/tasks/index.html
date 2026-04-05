@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-grid tasks-grid">
+    <article class="card action-panel">
+        <div class="section-head">
+            <div>
+                <h3>Отметить на сегодня</h3>
+                <p class="section-copy">Главный ежедневный сценарий: быстро закрыть нужные задачи.</p>
+            </div>
+            {% if overview.active_day %}
+            <span class="meta-badge">{{ overview.active_day.date.strftime('%d.%m.%Y') }}</span>
+            {% else %}
+            <span class="meta-badge muted-badge">день не начат</span>
+            {% endif %}
+        </div>
+
+        {% if overview.pending_tasks and overview.active_day %}
+        <div class="task-stack dense-stack">
+            {% for task in overview.pending_tasks %}
+            <form method="post" action="/tasks/{{ task.id }}/complete" class="task-card task-action-card">
+                <div class="task-main">
+                    <strong>{{ task.name }}</strong>
+                    <p>{{ task.description or "Без описания" }}</p>
+                </div>
+                <div class="task-side">
+                    <span class="meta-badge">{{ task.period }}</span>
+                    <button type="submit">Выполнить</button>
+                </div>
+            </form>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-note">
+            {% if not overview.active_day %}
+            <strong>Нет активного дня</strong>
+            <p class="muted">Сначала начни день в разделе калорий, после этого можно отмечать задачи.</p>
+            {% else %}
+            <strong>Невыполненных задач не осталось</strong>
+            <p class="muted">Сегодняшний список закрыт. Можно перейти к калориям или посмотреть статистику.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="card form-panel">
+        <div class="section-head">
+            <div>
+                <h3>Новая задача</h3>
+                <p class="section-copy">Добавь привычку или рабочую задачу в общий список.</p>
+            </div>
+        </div>
+        <form method="post" action="/tasks" class="stack-form compact-form">
+            <label>
+                <span>Название</span>
+                <input type="text" name="name" required>
+            </label>
+            <label>
+                <span>Описание</span>
+                <textarea name="description" rows="3" placeholder="Что именно нужно сделать"></textarea>
+            </label>
+            <label>
+                <span>Периодичность</span>
+                <input type="text" name="period" placeholder="ежедневно" required>
+            </label>
+            <button type="submit">Сохранить задачу</button>
+        </form>
+    </article>
+</section>
+
+<section class="card data-panel">
+    <div class="section-head">
+        <div>
+            <h3>Все задачи</h3>
+            <p class="section-copy">Управление полным списком без смешивания с ежедневной отметкой.</p>
+        </div>
+        <span class="muted">{{ tasks|length }} всего</span>
+    </div>
+
+    {% if tasks %}
+    <div class="task-table">
+        {% for task in tasks %}
+        <div class="task-row">
+            <div class="task-main">
+                <strong>{{ task.name }}</strong>
+                <p>{{ task.description or "Без описания" }}</p>
+            </div>
+            <div class="task-side">
+                <span class="meta-badge">{{ task.period }}</span>
+                <span class="badge {% if task.is_active %}badge-success{% else %}badge-muted{% endif %}">
+                    {% if task.is_active %}активна{% else %}отключена{% endif %}
+                </span>
+                {% if task.is_active %}
+                <form method="post" action="/tasks/{{ task.id }}/deactivate">
+                    <button type="submit" class="secondary">Отключить</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-note">
+        <strong>Список задач пока пуст</strong>
+        <p class="muted">Добавь первую задачу справа, и она появится в общем списке.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
