@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h3>Статистика по дате</h3>
+        <span class="muted">Подробный срез за конкретный день</span>
+    </div>
+    <form method="get" action="/statistics" class="inline-form">
+        <input type="date" name="target_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+        <button type="submit">Показать</button>
+    </form>
+</section>
+
+{% if statistics %}
+<section class="grid two">
+    <article class="card">
+        <div class="section-head">
+            <h3>Общие итоги</h3>
+            <span class="muted">
+                {% if statistics.day.is_finished %}
+                день завершён
+                {% else %}
+                день активен
+                {% endif %}
+            </span>
+        </div>
+        <ul class="list compact">
+            <li><strong>Съедено</strong><span>{{ statistics.totals.consumed }} ккал</span></li>
+            <li><strong>Движение</strong><span>{{ statistics.totals.exercise_burned }} ккал</span></li>
+            <li><strong>Базовый обмен</strong><span>{{ statistics.totals.base_metabolism }} ккал</span></li>
+            <li><strong>Общий расход</strong><span>{{ statistics.totals.burned }} ккал</span></li>
+            <li><strong>Баланс</strong><span>{{ statistics.totals.balance }} ккал</span></li>
+        </ul>
+    </article>
+
+    <article class="card">
+        <div class="section-head">
+            <h3>Выполненные задачи</h3>
+            <span class="muted">{{ statistics.completed_tasks|length }}</span>
+        </div>
+        {% if statistics.completed_tasks %}
+        <ul class="list">
+            {% for task in statistics.completed_tasks %}
+            <li>
+                <strong>{{ task.name }}</strong>
+                <span>{{ task.completed_at.strftime('%H:%M') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">За этот день задач пока не отмечено.</p>
+        {% endif %}
+    </article>
+</section>
+
+<section class="grid two">
+    <article class="card">
+        <div class="section-head">
+            <h3>Еда</h3>
+            <span class="muted">{{ statistics.foods|length }} записей</span>
+        </div>
+        {% if statistics.foods %}
+        <ul class="list">
+            {% for food in statistics.foods %}
+            <li>
+                <strong>{{ food.name }}</strong>
+                <span>{{ food.count }} • {{ food.total_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Записей нет.</p>
+        {% endif %}
+    </article>
+
+    <article class="card">
+        <div class="section-head">
+            <h3>Движение</h3>
+            <span class="muted">{{ statistics.exercises|length }} записей</span>
+        </div>
+        {% if statistics.exercises %}
+        <ul class="list">
+            {% for exercise in statistics.exercises %}
+            <li>
+                <strong>{{ exercise.name }}</strong>
+                <span>{{ exercise.burned_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Записей нет.</p>
+        {% endif %}
+    </article>
+</section>
+{% else %}
+<section class="card empty-state">
+    <h3>За {{ selected_date.strftime('%d.%m.%Y') }} пока нет данных</h3>
+    <p class="muted">Начни день, добавь еду, движение и отметь задачи, чтобы здесь появилась статистика.</p>
+</section>
+{% endif %}
+{% endblock %}

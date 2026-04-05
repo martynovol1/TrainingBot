@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="grid two">
+    <article class="card">
+        <div class="section-head">
+            <h3>Состояние дня</h3>
+            <span class="muted">
+                {% if active_day %}
+                День активен
+                {% else %}
+                День не начат
+                {% endif %}
+            </span>
+        </div>
+        <div class="action-row">
+            <form method="post" action="/calories/day/start">
+                <button type="submit">Начать день</button>
+            </form>
+            <form method="post" action="/calories/day/finish">
+                <button type="submit" class="secondary">Завершить день</button>
+            </form>
+        </div>
+    </article>
+
+    <article class="card">
+        <div class="section-head">
+            <h3>Итоги за сегодня</h3>
+            <span class="muted">{{ today.strftime('%d.%m.%Y') }}</span>
+        </div>
+        {% if today_stats %}
+        <ul class="list compact">
+            <li><strong>Съедено</strong><span>{{ today_stats.totals.consumed }} ккал</span></li>
+            <li><strong>Движение</strong><span>{{ today_stats.totals.exercise_burned }} ккал</span></li>
+            <li><strong>Базовый обмен</strong><span>{{ today_stats.totals.base_metabolism }} ккал</span></li>
+            <li><strong>Общий расход</strong><span>{{ today_stats.totals.burned }} ккал</span></li>
+            <li><strong>Баланс</strong><span>{{ today_stats.totals.balance }} ккал</span></li>
+        </ul>
+        {% else %}
+        <p class="muted">Сегодня ещё нет записей.</p>
+        {% endif %}
+    </article>
+</section>
+
+<section class="grid two">
+    <article class="card">
+        <div class="section-head">
+            <h3>Добавить еду</h3>
+            <span class="muted">Фиксируем съеденное</span>
+        </div>
+        <form method="post" action="/calories/food" class="stack-form">
+            <label>
+                <span>Название</span>
+                <input type="text" name="name" required>
+            </label>
+            <label>
+                <span>Количество</span>
+                <input type="text" name="count" placeholder="250 г" required>
+            </label>
+            <label>
+                <span>Калории</span>
+                <input type="number" name="total_calories" min="1" required>
+            </label>
+            <button type="submit">Добавить еду</button>
+        </form>
+    </article>
+
+    <article class="card">
+        <div class="section-head">
+            <h3>Добавить движение</h3>
+            <span class="muted">Тренировка или активность</span>
+        </div>
+        <form method="post" action="/calories/exercise" class="stack-form">
+            <label>
+                <span>Название</span>
+                <input type="text" name="name" required>
+            </label>
+            <label>
+                <span>Сожжённые калории</span>
+                <input type="number" name="burned_calories" min="1" required>
+            </label>
+            <button type="submit">Добавить движение</button>
+        </form>
+    </article>
+</section>
+
+{% if today_stats %}
+<section class="grid two">
+    <article class="card">
+        <div class="section-head">
+            <h3>Еда за сегодня</h3>
+            <span class="muted">{{ today_stats.foods|length }} записей</span>
+        </div>
+        {% if today_stats.foods %}
+        <ul class="list">
+            {% for food in today_stats.foods %}
+            <li>
+                <strong>{{ food.name }}</strong>
+                <span>{{ food.count }} • {{ food.total_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Еда пока не добавлена.</p>
+        {% endif %}
+    </article>
+
+    <article class="card">
+        <div class="section-head">
+            <h3>Движение за сегодня</h3>
+            <span class="muted">{{ today_stats.exercises|length }} записей</span>
+        </div>
+        {% if today_stats.exercises %}
+        <ul class="list">
+            {% for exercise in today_stats.exercises %}
+            <li>
+                <strong>{{ exercise.name }}</strong>
+                <span>{{ exercise.burned_calories }} ккал</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Движение пока не добавлено.</p>
+        {% endif %}
+    </article>
+</section>
+{% endif %}
+{% endblock %}

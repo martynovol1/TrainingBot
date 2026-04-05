@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <p class="eyebrow">Обзор</p>
+        <h3>Один экран для всего дня</h3>
+        <p class="muted">Здесь видно активный день, прогресс по задачам и текущий баланс калорий.</p>
+    </div>
+</section>
+
+<section class="grid two">
+    <article class="card metric-card">
+        <p class="muted">Активных задач</p>
+        <strong>{{ tasks_count }}</strong>
+    </article>
+    <article class="card metric-card">
+        <p class="muted">Невыполнено сегодня</p>
+        <strong>{{ overview.pending_tasks|length }}</strong>
+    </article>
+    <article class="card metric-card">
+        <p class="muted">Выполнено сегодня</p>
+        <strong>{{ overview.completed_tasks|length }}</strong>
+    </article>
+    <article class="card metric-card">
+        <p class="muted">Статус дня</p>
+        <strong>
+            {% if overview.active_day %}
+            активен
+            {% elif today_stats %}
+            завершён
+            {% else %}
+            не начат
+            {% endif %}
+        </strong>
+    </article>
+</section>
+
+<section class="grid two">
+    <article class="card">
+        <div class="section-head">
+            <h3>Задачи на сегодня</h3>
+            <a href="/tasks">Открыть задачи</a>
+        </div>
+        {% if overview.pending_tasks %}
+        <ul class="list">
+            {% for task in overview.pending_tasks[:5] %}
+            <li>
+                <strong>{{ task.name }}</strong>
+                <span>{{ task.period }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Все активные задачи на сегодня уже закрыты или ещё нет активного дня.</p>
+        {% endif %}
+    </article>
+
+    <article class="card">
+        <div class="section-head">
+            <h3>Калории за сегодня</h3>
+            <a href="/calories">Открыть раздел</a>
+        </div>
+        {% if today_stats %}
+        <ul class="list compact">
+            <li><strong>Съедено</strong><span>{{ today_stats.totals.consumed }} ккал</span></li>
+            <li><strong>Движение</strong><span>{{ today_stats.totals.exercise_burned }} ккал</span></li>
+            <li><strong>Общий расход</strong><span>{{ today_stats.totals.burned }} ккал</span></li>
+            <li><strong>Баланс</strong><span>{{ today_stats.totals.balance }} ккал</span></li>
+        </ul>
+        {% else %}
+        <p class="muted">Сегодня ещё нет записей по калориям.</p>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

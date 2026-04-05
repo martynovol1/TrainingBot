@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Training Bot</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="login-body">
+    <div class="login-layout">
+        <section class="login-hero">
+            <p class="eyebrow">Training Bot</p>
+            <h1>Сайт, связанный с Telegram-ботом</h1>
+            <p>
+                Получи одноразовый код в боте в разделе «Веб-доступ», затем введи его здесь.
+                Код действует ограниченное время и даёт доступ только к твоим данным.
+            </p>
+        </section>
+
+        <section class="login-card">
+            {% if flashes %}
+            <div class="flash-stack">
+                {% for flash in flashes %}
+                <div class="flash flash-{{ flash.category }}">{{ flash.message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <h2>Войти по коду</h2>
+            <form method="post" action="/login" class="stack-form">
+                <label>
+                    <span>Код из Telegram</span>
+                    <input type="text" name="code" placeholder="Например: A1B2C3D4" autocomplete="one-time-code" required>
+                </label>
+                <button type="submit">Войти</button>
+            </form>
+        </section>
+    </div>
+</body>
+</html>

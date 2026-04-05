@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | Training Bot</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-mark">TB</span>
+                <div>
+                    <p class="eyebrow">Training Bot</p>
+                    <h1>Контроль задач и привычек</h1>
+                </div>
+            </div>
+
+            {% if user %}
+            <div class="profile-card">
+                <p class="muted">Авторизован как</p>
+                <strong>{{ user_name }}</strong>
+                <a class="ghost-link" href="/logout">Выйти</a>
+            </div>
+            {% endif %}
+
+            <nav class="nav">
+                <a href="/" class="{% if active_page == 'dashboard' %}active{% endif %}">Панель</a>
+                <a href="/tasks" class="{% if active_page == 'tasks' %}active{% endif %}">Задачи</a>
+                <a href="/calories" class="{% if active_page == 'calories' %}active{% endif %}">Калории</a>
+                <a href="/statistics" class="{% if active_page == 'statistics' %}active{% endif %}">Статистика</a>
+            </nav>
+
+            <div class="sidebar-note">
+                <p class="muted">Вход на сайт выполняется одноразовым кодом из Telegram-бота.</p>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="page-header">
+                <div>
+                    <p class="eyebrow">Today</p>
+                    <h2>{{ title }}</h2>
+                </div>
+                <p class="muted">{{ today.strftime('%d.%m.%Y') }}</p>
+            </header>
+
+            {% if flashes %}
+            <section class="flash-stack">
+                {% for flash in flashes %}
+                <div class="flash flash-{{ flash.category }}">{{ flash.message }}</div>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

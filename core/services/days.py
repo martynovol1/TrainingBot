@@ -1,57 +1,56 @@
+from __future__ import annotations
+
 from datetime import date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
-from database.db import SessionLocal
-from database.db_models import Day, ExerciseEntry, FoodEntry
+from core.db import session_scope
+from core.models import Day, ExerciseEntry, FoodEntry, TaskCompletion
+from core.settings import settings
 
-BASE_METABOLISM_CALORIES = 1800
+
+BASE_METABOLISM_CALORIES = settings.base_metabolism_calories
 
 
-def get_active_day() -> Day | None:
-    session = SessionLocal()
-
-    try:
+def get_active_day(user_id: int) -> Day | None:
+    with session_scope() as session:
         return session.scalar(
             select(Day)
-            .where(Day.is_finished.is_(False))
+            .where(Day.user_id == user_id, Day.is_finished.is_(False))
             .order_by(Day.started_at.desc())
         )
-    finally:
-        session.close()
 
 
-def start_day() -> tuple[Day, bool]:
-    session = SessionLocal()
-
-    try:
+def start_day(user_id: int) -> tuple[Day, str]:
+    with session_scope() as session:
         active_day = session.scalar(
             select(Day)
-            .where(Day.is_finished.is_(False))
+            .where(Day.user_id == user_id, Day.is_finished.is_(False))
             .order_by(Day.started_at.desc())
         )
         if active_day is not None:
-            session.expunge(active_day)
-            return active_day, False
+            return active_day, "active"
 
-        day = Day()
+        existing_day = session.scalar(
+            select(Day)
+            .where(Day.user_id == user_id, Day.date == date.today())
+            .order_by(Day.started_at.desc())
+        )
+        if existing_day is not None:
+            return existing_day, "already_exists"
+
+        day = Day(user_id=user_id)
         session.add(day)
-        session.commit()
-        session.refresh(day)
-        session.expunge(day)
-        return day, True
-    finally:
-        session.close()
+        session.flush()
+        return day, "created"
 
 
-def finish_day() -> Day | None:
-    session = SessionLocal()
-
-    try:
+def finish_day(user_id: int) -> Day | None:
+    with session_scope() as session:
         day = session.scalar(
             select(Day)
-            .where(Day.is_finished.is_(False))
+            .where(Day.user_id == user_id, Day.is_finished.is_(False))
             .order_by(Day.started_at.desc())
         )
         if day is None:
@@ -72,22 +71,15 @@ def finish_day() -> Day | None:
         day.total_consumed_calories = int(total_consumed)
         day.total_burned_calories = total_burned
         day.calorie_balance = int(total_burned - total_consumed)
-
-        session.commit()
-        session.refresh(day)
-        session.expunge(day)
+        session.flush()
         return day
-    finally:
-        session.close()
 
 
-def add_food_entry(name: str, count: str, total_calories: int) -> FoodEntry | None:
-    session = SessionLocal()
-
-    try:
+def add_food_entry(user_id: int, name: str, count: str, total_calories: int) -> FoodEntry | None:
+    with session_scope() as session:
         active_day = session.scalar(
             select(Day)
-            .where(Day.is_finished.is_(False))
+            .where(Day.user_id == user_id, Day.is_finished.is_(False))
             .order_by(Day.started_at.desc())
         )
         if active_day is None:
@@ -95,26 +87,20 @@ def add_food_entry(name: str, count: str, total_calories: int) -> FoodEntry | No
 
         food_entry = FoodEntry(
             day_id=active_day.id,
-            name=name,
-            count=count,
+            name=name.strip(),
+            count=count.strip(),
             total_calories=total_calories,
         )
         session.add(food_entry)
-        session.commit()
-        session.refresh(food_entry)
-        session.expunge(food_entry)
+        session.flush()
         return food_entry
-    finally:
-        session.close()
 
 
-def add_exercise_entry(name: str, burned_calories: int) -> ExerciseEntry | None:
-    session = SessionLocal()
-
-    try:
+def add_exercise_entry(user_id: int, name: str, burned_calories: int) -> ExerciseEntry | None:
+    with session_scope() as session:
         active_day = session.scalar(
             select(Day)
-            .where(Day.is_finished.is_(False))
+            .where(Day.user_id == user_id, Day.is_finished.is_(False))
             .order_by(Day.started_at.desc())
         )
         if active_day is None:
@@ -122,29 +108,24 @@ def add_exercise_entry(name: str, burned_calories: int) -> ExerciseEntry | None:
 
         exercise_entry = ExerciseEntry(
             day_id=active_day.id,
-            name=name,
+            name=name.strip(),
             burned_calories=burned_calories,
         )
         session.add(exercise_entry)
-        session.commit()
-        session.refresh(exercise_entry)
-        session.expunge(exercise_entry)
+        session.flush()
         return exercise_entry
-    finally:
-        session.close()
 
 
-def get_day_statistics(target_date: date) -> dict | None:
-    session = SessionLocal()
-
-    try:
+def get_day_statistics(user_id: int, target_date: date) -> dict | None:
+    with session_scope() as session:
         day = session.scalar(
             select(Day)
             .options(
                 selectinload(Day.food_entries),
                 selectinload(Day.exercise_entries),
+                selectinload(Day.task_completions).selectinload(TaskCompletion.task),
             )
-            .where(Day.date == target_date)
+            .where(Day.user_id == user_id, Day.date == target_date)
             .order_by(Day.started_at.desc())
         )
         if day is None:
@@ -165,12 +146,15 @@ def get_day_statistics(target_date: date) -> dict | None:
             }
             for exercise in day.exercise_entries
         ]
+        completed_tasks = [
+            {
+                "name": completion.task.name if completion.task else "Без названия",
+                "completed_at": completion.completed_at,
+            }
+            for completion in day.task_completions
+        ]
 
-        exercise_burned = sum(
-            exercise["burned_calories"]
-            for exercise in exercises
-        )
-
+        exercise_burned = sum(exercise["burned_calories"] for exercise in exercises)
         if day.is_finished:
             total_consumed = day.total_consumed_calories
             total_burned = day.total_burned_calories
@@ -190,6 +174,7 @@ def get_day_statistics(target_date: date) -> dict | None:
             },
             "foods": foods,
             "exercises": exercises,
+            "completed_tasks": completed_tasks,
             "totals": {
                 "consumed": total_consumed,
                 "exercise_burned": exercise_burned,
@@ -198,5 +183,3 @@ def get_day_statistics(target_date: date) -> dict | None:
                 "balance": balance,
             },
         }
-    finally:
-        session.close()
