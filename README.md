@@ -37,6 +37,12 @@ Install them with:
 venv\Scripts\pip install -r requirements.txt
 ```
 
+Run tests with:
+
+```powershell
+venv\Scripts\pytest
+```
+
 ## Configuration
 
 The project can read these environment variables:
@@ -85,4 +91,5 @@ The code is short-lived and bound to your Telegram user.
 
 - The first run creates the database schema automatically.
 - The website and bot use the same data and authorization model.
+- Tests use an isolated SQLite database and do not touch the main `tasks.db`.
 - If you want to reset the local database, remove `tasks.db` before starting the apps again.
