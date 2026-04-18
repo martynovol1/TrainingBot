@@ -63,7 +63,7 @@ def get_task_day_overview(user_id: int) -> dict:
         if active_day is None:
             return {
                 "active_day": None,
-                "pending_tasks": tasks,
+                "pending_tasks": [],
                 "completed_tasks": [],
             }
 

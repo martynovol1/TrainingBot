@@ -62,6 +62,16 @@ def test_day_lifecycle_and_statistics(app_user):
     }
 
 
+def test_task_day_overview_is_empty_without_active_day(app_user):
+    create_task(app_user.id, "Read", "10 pages", "daily")
+
+    overview = get_task_day_overview(app_user.id)
+
+    assert overview["active_day"] is None
+    assert overview["pending_tasks"] == []
+    assert overview["completed_tasks"] == []
+
+
 def test_web_login_codes_are_single_use(app_user):
     login_code = generate_web_login_code(app_user.id)
 
