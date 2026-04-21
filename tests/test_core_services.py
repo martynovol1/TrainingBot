@@ -59,6 +59,7 @@ def test_day_lifecycle_and_statistics(app_user):
         "base_metabolism": BASE_METABOLISM_CALORIES,
         "burned": BASE_METABOLISM_CALORIES + 300,
         "balance": BASE_METABOLISM_CALORIES + 300 - 450,
+        "completed_tasks": 1,
     }
 
 
