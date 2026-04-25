@@ -7,6 +7,7 @@ from core.services.days import (
     add_exercise_entry,
     add_food_entry,
     finish_day,
+    get_day_closure_snapshot,
     get_day_statistics,
     start_day,
 )
@@ -39,6 +40,22 @@ def test_day_lifecycle_and_statistics(app_user):
     assert overview["active_day"] is not None
     assert [item.id for item in overview["completed_tasks"]] == [task.id]
     assert overview["pending_tasks"] == []
+
+    closure_snapshot = get_day_closure_snapshot(app_user.id)
+    assert closure_snapshot is not None
+    assert closure_snapshot["day"]["id"] == day.id
+    assert closure_snapshot["counts"] == {
+        "foods": 1,
+        "exercises": 1,
+        "completed_tasks": 1,
+    }
+    assert closure_snapshot["totals"] == {
+        "consumed": 450,
+        "exercise_burned": 300,
+        "base_metabolism": BASE_METABOLISM_CALORIES,
+        "burned": BASE_METABOLISM_CALORIES + 300,
+        "balance": BASE_METABOLISM_CALORIES + 300 - 450,
+    }
 
     finished_day = finish_day(app_user.id)
     assert finished_day is not None

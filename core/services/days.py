@@ -75,6 +75,46 @@ def finish_day(user_id: int) -> Day | None:
         return day
 
 
+def get_day_closure_snapshot(user_id: int) -> dict | None:
+    with session_scope() as session:
+        day = session.scalar(
+            select(Day)
+            .options(
+                selectinload(Day.food_entries),
+                selectinload(Day.exercise_entries),
+                selectinload(Day.task_completions),
+            )
+            .where(Day.user_id == user_id, Day.is_finished.is_(False))
+            .order_by(Day.started_at.desc())
+        )
+        if day is None:
+            return None
+
+        total_consumed = sum(food.total_calories for food in day.food_entries)
+        exercise_burned = sum(exercise.burned_calories for exercise in day.exercise_entries)
+        total_burned = exercise_burned + BASE_METABOLISM_CALORIES
+
+        return {
+            "day": {
+                "id": day.id,
+                "date": day.date,
+                "started_at": day.started_at,
+            },
+            "counts": {
+                "foods": len(day.food_entries),
+                "exercises": len(day.exercise_entries),
+                "completed_tasks": len(day.task_completions),
+            },
+            "totals": {
+                "consumed": total_consumed,
+                "exercise_burned": exercise_burned,
+                "base_metabolism": BASE_METABOLISM_CALORIES,
+                "burned": total_burned,
+                "balance": total_burned - total_consumed,
+            },
+        }
+
+
 def add_food_entry(user_id: int, name: str, count: str, total_calories: int) -> FoodEntry | None:
     with session_scope() as session:
         active_day = session.scalar(
@@ -181,5 +221,6 @@ def get_day_statistics(user_id: int, target_date: date) -> dict | None:
                 "base_metabolism": BASE_METABOLISM_CALORIES,
                 "burned": total_burned,
                 "balance": balance,
+                "completed_tasks": len(completed_tasks),
             },
         }
